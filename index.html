@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickNote</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <aside class="sidebar">
+            <h2>QuickNote</h2>
+            <p>Your personal workspace</p>
+
+            <nav class="category-list">
+                <button class="active" data-category="All Notes">All Notes</button>
+                <button data-category="Study">Study</button>
+                <button data-category="Personal">Personal</button>
+                <button data-category="Work">Work</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+
+            <header>
+                <div>
+                    <h1>My Notes</h1>
+                    <p>Organize your thoughts and ideas.</p>
+                </div>
+
+                <div class="header-buttons">
+                    <button id="theme-toggle">Dark Mode</button>
+                    <button class="add-btn">+ New Note</button>
+                </div>
+            </header>
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    placeholder="Search your notes..."
+                    id="search-input"
+                >
+            </div>
+
+            <section class="notes-area">
+
+                <div class="empty-state">
+                    <h2>No Notes Yet</h2>
+                    <p>Create your first note to get started.</p>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="renderer.js"></script>
+
+</body>
+</html>
