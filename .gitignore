@@ -1,8 +1,59 @@
 
+# Dependencies
 node_modules/
+jspm_packages/
+
+# Build output
 dist/
 out/
+build/
+
+# Environment files
 .env
+.env.*
+!.env.example
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Cache
+.cache/
+.parcel-cache/
+.npm/
+.eslintcache
+.stylelintcache
+.vite/
+.astro/
+.turbo/
+.dynamodb/
+.firebase/
+
+# Editor and OS files
 .DS_Store
 Thumbs.db
+.vscode-test/
+
+# TypeScript
+*.tsbuildinfo
+
+# Other generated files
+*.tgz
+build/Release/
+web_modules/
+.pnpm-store/
