@@ -25,8 +25,8 @@ function displayNotes(searchText = '', selectedCategory = 'All Notes') {
         }))
         .filter(note => {
             const matchesSearch =
-                note.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                note.content.toLowerCase().includes(searchText.toLowerCase());
+                (note.title || '').toLowerCase().includes(searchText.toLowerCase()) ||
+                (note.content || '').toLowerCase().includes(searchText.toLowerCase());
 
             const matchesCategory =
                 selectedCategory === 'All Notes' ||
@@ -60,10 +60,10 @@ function displayNotes(searchText = '', selectedCategory = 'All Notes') {
         card.className = 'note-card';
 
         const title = document.createElement('h3');
-        title.textContent = note.title;
+        title.textContent = note.title || 'Untitled';
 
         const content = document.createElement('p');
-        content.textContent = note.content;
+        content.textContent = note.content || '';
 
         const category = document.createElement('small');
         category.textContent = 'Category: ' + (note.category || 'Personal');
@@ -95,6 +95,8 @@ function displayNotes(searchText = '', selectedCategory = 'All Notes') {
         deleteButton.textContent = 'Delete';
 
         deleteButton.addEventListener('click', () => {
+            if (!confirm('Are you sure you want to delete this note?')) return;
+
             notes.splice(note.originalIndex, 1);
             saveNotes();
             displayNotes(searchInput.value, currentCategory);
@@ -116,12 +118,15 @@ function displayNotes(searchText = '', selectedCategory = 'All Notes') {
     });
 }
 
-// Create or edit note
+// Create or edit note with Auto-Save
 function createEditor(editIndex = null) {
     if (document.querySelector('.note-editor')) return;
 
     const isEditing = editIndex !== null;
     const currentNote = isEditing ? notes[editIndex] : null;
+
+    let activeEditIndex = editIndex;
+    let autoSaveTimer;
 
     const editor = document.createElement('div');
     editor.className = 'note-editor';
@@ -141,6 +146,8 @@ function createEditor(editIndex = null) {
             <option value="Work">Work</option>
         </select>
 
+        <p id="auto-save-status">Not saved yet</p>
+
         <button id="save-note">Save Note</button>
         <button id="cancel-note">Cancel</button>
     `;
@@ -150,34 +157,24 @@ function createEditor(editIndex = null) {
     const titleInput = editor.querySelector('#note-title');
     const contentInput = editor.querySelector('#note-content');
     const categoryInput = editor.querySelector('#note-category');
+    const status = editor.querySelector('#auto-save-status');
 
     if (isEditing) {
-        titleInput.value = currentNote.title;
-        contentInput.value = currentNote.content;
+        titleInput.value = currentNote.title || '';
+        contentInput.value = currentNote.content || '';
         categoryInput.value = currentNote.category || 'Personal';
+        status.textContent = 'Ready to edit';
     } else {
         categoryInput.value = 'Personal';
     }
 
-    editor.querySelector('#save-note').addEventListener('click', () => {
+    function persistNote() {
         const title = titleInput.value.trim();
         const content = contentInput.value.trim();
 
-        if (!title || !content) {
-            alert('Please enter both title and note content.');
-            return;
-        }
+        if (!title || !content) return false;
 
-        if (isEditing) {
-            notes[editIndex] = {
-                ...currentNote,
-                title,
-                content,
-                category: categoryInput.value,
-                createdAt: currentNote.createdAt || Date.now(),
-                pinned: Boolean(currentNote.pinned)
-            };
-        } else {
+        if (activeEditIndex === null) {
             notes.push({
                 title,
                 content,
@@ -185,14 +182,63 @@ function createEditor(editIndex = null) {
                 createdAt: Date.now(),
                 pinned: false
             });
+
+            activeEditIndex = notes.length - 1;
+        } else {
+            notes[activeEditIndex] = {
+                ...notes[activeEditIndex],
+                title,
+                content,
+                category: categoryInput.value,
+                createdAt: notes[activeEditIndex].createdAt || Date.now()
+            };
         }
 
         saveNotes();
+        status.textContent = 'Auto-saved successfully';
+
+        return true;
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+
+        status.textContent = 'Saving...';
+
+        autoSaveTimer = setTimeout(() => {
+            if (!titleInput.value.trim() || !contentInput.value.trim()) {
+                status.textContent = 'Waiting for title and content';
+                return;
+            }
+
+            persistNote();
+        }, 700);
+    }
+
+    titleInput.addEventListener('input', scheduleAutoSave);
+    contentInput.addEventListener('input', scheduleAutoSave);
+    categoryInput.addEventListener('change', scheduleAutoSave);
+
+    editor.querySelector('#save-note').addEventListener('click', () => {
+        clearTimeout(autoSaveTimer);
+
+        if (!persistNote()) {
+            alert('Please enter both title and note content.');
+            return;
+        }
+
         searchInput.value = '';
         displayNotes('', currentCategory);
     });
 
     editor.querySelector('#cancel-note').addEventListener('click', () => {
+        clearTimeout(autoSaveTimer);
+
+        if (!isEditing && activeEditIndex !== null) {
+            notes.splice(activeEditIndex, 1);
+            saveNotes();
+        }
+
         editor.remove();
     });
 }
